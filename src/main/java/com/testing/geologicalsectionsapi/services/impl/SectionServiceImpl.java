@@ -52,14 +52,16 @@ public class SectionServiceImpl implements SectionService {
     }
 
     @Override
-    public void deleteSection(Long id) {
-        sectionRepository.deleteById(id);
+    public boolean deleteSection(Long id) {
+
+        // Check if the class exists before deleting
+        if (sectionRepository.existsById(id)) {
+            sectionRepository.deleteById(id);
+            return true; // Deletion successful
+        } else {
+            return false; // Class with the given ID not found
+        }
     }
 
-
-    @Override
-    public List<Section> getSectionsByGeologicalClassCode(String code) {
-        return sectionRepository.findByGeologicalClassesCode(code);
-    }
 
 }

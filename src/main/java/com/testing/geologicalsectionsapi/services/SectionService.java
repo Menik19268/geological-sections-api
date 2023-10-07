@@ -10,10 +10,9 @@ public interface SectionService {
 
     Section createSection(Section section);
 
-    void deleteSection(Long id);
+    boolean deleteSection(Long id);
 
     Section updateSection(Long id, Section updatedSection, String traceId);
 
 
-    List<Section> getSectionsByGeologicalClassCode(String code);
 }

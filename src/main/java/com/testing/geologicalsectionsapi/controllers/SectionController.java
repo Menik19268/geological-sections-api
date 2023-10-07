@@ -26,48 +26,46 @@ public class SectionController {
         this.sectionService = sectionService;
     }
 
-    @ApiOperation(value = "/{traceId}/{channel}/{user}/sections", tags = "geological-sections-api")
-    @PostMapping(path = "/{traceId}/{channel}/{user}/sections", produces = "application/json")
-    @ResponseBody
-    public Section createSection(@RequestBody Section section) {
-        return sectionService.createSection(section);
+    @ApiOperation(value = "Create a new Section", tags = "geological-sections-api")
+    @PostMapping(value = "/{traceId}/{channel}/{user}/section", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Section> createSection(@RequestBody Section section) {
+        Section createdSection = sectionService.createSection(section);
+        return new ResponseEntity<>(createdSection, HttpStatus.CREATED);
     }
 
-    @ApiOperation(value = "/{traceId}/{channel}/{user}/sections/{id}", tags = "geological-sections-api")
-    @GetMapping(path = "/{traceId}/{channel}/{user}/sections/{id}", produces = "application/json")
-    @ResponseBody
-    public Section getSectionById(@PathVariable Long id, @PathVariable String traceId) {
-
-        return sectionService.getSectionById(id, traceId);
-
-    }
-
-    @ApiOperation(value = "/process-discon-recon/{traceId}/{channel}/{user}/customer", tags = "geological-sections-api")
-    @PutMapping(path = "/{traceId}/{channel}/{user}/sections/{id}", produces = "application/json")
-    @ResponseBody
-    public Section updateSection(@PathVariable Long id, @RequestBody Section section, @PathVariable String traceId) {
-        return sectionService.updateSection(id, section, traceId);
-    }
-
-
-    @ApiOperation(value = "/{traceId}/{channel}/{user}/sections/{id}", tags = "connection-disconnect-reconnect")
-    @DeleteMapping(path = "/{traceId}/{channel}/{user}/sections/{id}", produces = "application/json")
-    @ResponseBody
-    public void deleteSection(@PathVariable Long id) {
-        sectionService.deleteSection(id);
-    }
-
-
-    @ApiOperation(value = "Get Sections by GeologicalClass Code", tags = "geological-sections-api")
-    @GetMapping(value = "/sections/by-code", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Section>> getSectionsByGeologicalClassCode(@RequestParam(name = "code") String code) {
-        List<Section> sections = sectionService.getSectionsByGeologicalClassCode(code);
-
-        if (!sections.isEmpty()) {
-            return new ResponseEntity<>(sections, HttpStatus.OK);
+    @ApiOperation(value = "Get a Section by ID", tags = "geological-sections-api")
+    @GetMapping(value = "/{traceId}/{channel}/{user}/section/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Section> getSectionById(@PathVariable Long id, @PathVariable String traceId) {
+        Section section = sectionService.getSectionById(id, traceId);
+        if (section != null) {
+            return new ResponseEntity<>(section, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    @ApiOperation(value = "Update a Section by ID", tags = "geological-sections-api")
+    @PutMapping(value = "/{traceId}/{channel}/{user}/section/{id}", produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Section> updateSection(@PathVariable Long id, @RequestBody Section updatedSection, @PathVariable String traceId) {
+        Section updatedSectionResult = sectionService.updateSection(id, updatedSection, traceId);
+        if (updatedSectionResult != null) {
+            return new ResponseEntity<>(updatedSectionResult, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @ApiOperation(value = "Delete a Section by ID", tags = "geological-sections-api")
+    @DeleteMapping(value = "/{traceId}/{channel}/{user}/section/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> deleteSection(@PathVariable Long id) {
+        boolean deleted = sectionService.deleteSection(id);
+        if (deleted) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+
 
 }
