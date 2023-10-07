@@ -1,6 +1,7 @@
 package com.testing.geologicalsectionsapi.controllers;
 
 import com.testing.geologicalsectionsapi.models.GeologicalClass;
+import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.services.impl.GeologicalClassServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -65,4 +67,7 @@ public class GeologicalClassController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+
+
 }

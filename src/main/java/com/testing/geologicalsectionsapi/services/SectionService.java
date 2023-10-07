@@ -16,4 +16,5 @@ public interface SectionService {
 
 
     List<Section> getSectionsByGeologicalClassCode(String code);
+
 }

@@ -58,8 +58,9 @@ public class SectionController {
     }
 
 
+
     @ApiOperation(value = "Get Sections by GeologicalClass Code", tags = "geological-sections-api")
-    @GetMapping(value = "/sections/by-code", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{traceId}/{channel}/{user}/section/by-code", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Section>> getSectionsByGeologicalClassCode(@RequestParam(name = "code") String code) {
         List<Section> sections = sectionService.getSectionsByGeologicalClassCode(code);
 
