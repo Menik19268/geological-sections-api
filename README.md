@@ -1,4 +1,4 @@
-# geological-sections-api -Get the latest code from develop/1.0.0 branch
+#Get the latest code from develop/1.0.0 branch
 
 # Creating a Section
 curl --location --request POST 'http://localhost:8080/geological-sections/api/WWW12121212121/CG_USER/CG/sections' \
