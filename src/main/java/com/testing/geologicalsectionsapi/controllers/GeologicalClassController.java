@@ -1,6 +1,7 @@
 package com.testing.geologicalsectionsapi.controllers;
 
 import com.testing.geologicalsectionsapi.models.GeologicalClass;
+
 import com.testing.geologicalsectionsapi.services.impl.GeologicalClassServiceImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

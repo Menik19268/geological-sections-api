@@ -3,6 +3,7 @@ package com.testing.geologicalsectionsapi.configurations;
 import com.testing.geologicalsectionsapi.util.CustomFilter;
 import com.testing.geologicalsectionsapi.util.MyBasicAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,12 @@ import java.io.IOException;
 @EnableWebSecurity
 public class CustomWebSecurityConfigurerAdapter {
 
+    @Value("${username}")
+    private String userName;
+
+    @Value("${password}")
+    private String password;
+
     @Autowired
     private MyBasicAuthenticationEntryPoint authenticationEntryPoint;
 
@@ -32,8 +39,8 @@ public class CustomWebSecurityConfigurerAdapter {
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth
                 .inMemoryAuthentication()
-                .withUser("user1")
-                .password(passwordEncoder().encode("user1Pass"))
+                .withUser(this.userName)
+                .password(passwordEncoder().encode(this.password))
                 .authorities("ROLE_USER");
     }
 
