@@ -1,9 +1,10 @@
 package com.testing.geologicalsectionsapi.models;
 
-import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import javax.persistence.*;
+
 
 @Entity
 @Table(name = "JOB_STATUSES")

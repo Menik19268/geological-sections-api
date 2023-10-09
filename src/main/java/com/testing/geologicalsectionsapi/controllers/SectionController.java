@@ -10,6 +10,7 @@ import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class SectionController {
     @ApiOperation(value = "Creating a Section", tags = "geological-sections-api")
     @PostMapping(path = "/{traceId}/{channel}/{user}/sections", produces = "application/json")
     @ResponseBody
+    @PreAuthorize("hasRole('ROLE_USER')")
     public Section createSection(@RequestBody Section section, @PathVariable String traceId, @PathVariable String channel, @PathVariable String user) {
         try {
             MDC.put("transaction.id", traceId);

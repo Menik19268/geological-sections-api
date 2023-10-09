@@ -1,6 +1,6 @@
 package com.testing.geologicalsectionsapi.models;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import lombok.Data;
 
 @Entity
