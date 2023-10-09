@@ -6,7 +6,6 @@ import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.repositories.GeologicalClassRepository;
 import com.testing.geologicalsectionsapi.repositories.SectionRepository;
 import com.testing.geologicalsectionsapi.services.DataImportService;
-import com.testing.geologicalsectionsapi.services.SectionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +30,9 @@ public class DataImportServiceImpl implements DataImportService {
 
     @Transactional
     public void mapAndSaveData(List<XlsImportDto> importedData) {
+
+        logger.info("Save the data in DB.");
+
         for (XlsImportDto importDto : importedData) {
             try {
                 // Map XlsImportDto to your entity classes (Section and GeologicalClass)
@@ -63,13 +65,10 @@ public class DataImportServiceImpl implements DataImportService {
                     }
                 }
             } catch (DataIntegrityViolationException e) {
-                // Handle data integrity violations here, e.g., log the error
                 logger.error("Data integrity violation while saving: " + e.getMessage());
-                // You can choose to throw a custom exception or handle it as per your application's needs.
+
             } catch (Exception e) {
-                // Handle other exceptions here, e.g., log the error
                 logger.error("An error occurred while saving data: " + e.getMessage());
-                // You can choose to throw a custom exception or handle it as per your application's needs.
             }
         }
     }

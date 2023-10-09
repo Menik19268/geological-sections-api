@@ -1,6 +1,5 @@
 package com.testing.geologicalsectionsapi.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 

@@ -7,15 +7,14 @@ import com.testing.geologicalsectionsapi.repositories.JobStatusRepository;
 import com.testing.geologicalsectionsapi.services.DataExportService;
 import com.testing.geologicalsectionsapi.services.ExportService;
 import com.testing.geologicalsectionsapi.util.FileNameGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ContentDisposition;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource;
+import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.core.io.Resource;
-
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +29,8 @@ public class ExportServiceImpl extends CommonService implements ExportService {
     private final DataExportService dataExportService;
     private final FileNameGenerator fileNameGenerator;
 
+    final Logger logger = LoggerFactory.getLogger("Application");
+
 
     public ExportServiceImpl(JobStatusRepository jobStatusRepository, DataExportService dataExportService, FileNameGenerator fileNameGenerator) {
         this.jobStatusRepository = jobStatusRepository;
@@ -40,6 +41,9 @@ public class ExportServiceImpl extends CommonService implements ExportService {
     @Async
     @Override
     public CompletableFuture<Long> exportDataAsync() {
+
+        long startTime = System.currentTimeMillis();
+
         try {
             // Save the job status as "IN PROGRESS"
             JobStatus jobStatus = new JobStatus(JobType.EXPORT, JobStatusEnum.IN_PROGRESS);
@@ -56,12 +60,20 @@ public class ExportServiceImpl extends CommonService implements ExportService {
             jobStatus.setFilePath(filePath); // Set the file path
             jobStatusRepository.save(jobStatus);
 
+            long endTime = System.currentTimeMillis();
+            long duration = endTime - startTime;
+            logger.info("Data export completed in {} milliseconds.", duration);
+
+
             return CompletableFuture.completedFuture(jobId);
         } catch (Exception e) {
             // If there's an error, update the job status as "ERROR"
             JobStatus jobStatus = new JobStatus(JobType.EXPORT, JobStatusEnum.ERROR);
             jobStatus.setResult("Export failed: " + e.getMessage());
             jobStatusRepository.save(jobStatus);
+
+            logger.error("Export failed: {}", e.getMessage(), e);
+
 
             return CompletableFuture.completedFuture(-1L);
         }
@@ -116,13 +128,14 @@ public class ExportServiceImpl extends CommonService implements ExportService {
                             .body(resource);
                 }
             } else if (jobStatus.getStatus() == JobStatusEnum.IN_PROGRESS) {
-                // Exporting is in progress, so throw an exception with an appropriate message
+                logger.warn("Exporting is in progress. File download is not allowed.");
                 throw new IllegalStateException("Exporting is in progress. File download is not allowed.");
             }
         }
 
         // If the file is not found, the job status is not "DONE," or other errors occur, return an appropriate response
-        return ResponseEntity.notFound().build();
+        logger.warn("File not found or job status is not 'DONE' for ID: {}", jobId);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found or job status is not 'DONE' for ID: " + jobId);
     }
 
 }

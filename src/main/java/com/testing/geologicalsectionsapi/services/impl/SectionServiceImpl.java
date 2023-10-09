@@ -1,13 +1,11 @@
 package com.testing.geologicalsectionsapi.services.impl;
 
-import com.testing.geologicalsectionsapi.exception.ValidationException;
 import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.repositories.SectionRepository;
 import com.testing.geologicalsectionsapi.services.SectionService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class SectionServiceImpl implements SectionService {

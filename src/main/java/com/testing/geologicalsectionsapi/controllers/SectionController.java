@@ -4,11 +4,12 @@ import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.services.SectionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,53 +22,85 @@ public class SectionController {
     static final String BASE_URL = "/api";
 
     private final SectionService sectionService;
+    final Logger logger = LoggerFactory.getLogger("Application");
+
 
     public SectionController(SectionService sectionService) {
         this.sectionService = sectionService;
     }
 
-    @ApiOperation(value = "/{traceId}/{channel}/{user}/sections", tags = "geological-sections-api")
+    @ApiOperation(value = "Creating a Section", tags = "geological-sections-api")
     @PostMapping(path = "/{traceId}/{channel}/{user}/sections", produces = "application/json")
     @ResponseBody
-    public Section createSection(@RequestBody Section section) {
-        return sectionService.createSection(section);
+    public Section createSection(@RequestBody Section section, @PathVariable String traceId, @PathVariable String channel, @PathVariable String user) {
+        try {
+            MDC.put("transaction.id", traceId);
+            logger.info("Request to create section from channel {} ||  user {}  ", channel, user);
+            return sectionService.createSection(section);
+        } finally {
+            MDC.remove("transaction.id");
+        }
     }
 
-    @ApiOperation(value = "/{traceId}/{channel}/{user}/sections/{id}", tags = "geological-sections-api")
+    @ApiOperation(value = "Getting a Section", tags = "geological-sections-api")
     @GetMapping(path = "/{traceId}/{channel}/{user}/sections/{id}", produces = "application/json")
     @ResponseBody
-    public Section getSectionById(@PathVariable Long id, @PathVariable String traceId) {
-
-        return sectionService.getSectionById(id, traceId);
+    public Section getSectionById(@PathVariable Long id, @PathVariable String traceId, @PathVariable String channel, @PathVariable String user) {
+        try {
+            MDC.put("transaction.id", traceId);
+            logger.info("Request a Section  from channel {} ||  user {}  ", channel, user);
+            return sectionService.getSectionById(id, traceId);
+        } finally {
+            MDC.remove("transaction.id");
+        }
 
     }
 
-    @ApiOperation(value = "/process-discon-recon/{traceId}/{channel}/{user}/customer", tags = "geological-sections-api")
+    @ApiOperation(value = "Update a Section", tags = "geological-sections-api")
     @PutMapping(path = "/{traceId}/{channel}/{user}/sections/{id}", produces = "application/json")
     @ResponseBody
-    public Section updateSection(@PathVariable Long id, @RequestBody Section section, @PathVariable String traceId) {
-        return sectionService.updateSection(id, section, traceId);
+    public Section updateSection(@PathVariable Long id, @RequestBody Section section, @PathVariable String traceId, @PathVariable String channel, @PathVariable String user) {
+        try {
+            MDC.put("transaction.id", traceId);
+            logger.info("Request to Update a Section  from channel {} ||  user {}  ", channel, user);
+            return sectionService.updateSection(id, section, traceId);
+        } finally {
+            MDC.remove("transaction.id");
+        }
+
     }
 
 
-    @ApiOperation(value = "/{traceId}/{channel}/{user}/sections/{id}", tags = "connection-disconnect-reconnect")
+    @ApiOperation(value = "Delete a Section", tags = "connection-disconnect-reconnect")
     @DeleteMapping(path = "/{traceId}/{channel}/{user}/sections/{id}", produces = "application/json")
     @ResponseBody
-    public void deleteSection(@PathVariable Long id) {
-        sectionService.deleteSection(id);
+    public void deleteSection(@PathVariable Long id, @PathVariable String traceId, @PathVariable String channel, @PathVariable String user) {
+        try {
+            MDC.put("transaction.id", traceId);
+            logger.info("Request to Update a Section  from channel {} ||  user {}  ", channel, user);
+            sectionService.deleteSection(id);
+        } finally {
+            MDC.remove("transaction.id");
+        }
     }
-
 
 
     @ApiOperation(value = "Get Sections by GeologicalClass Code", tags = "geological-sections-api")
     @GetMapping(value = "/{traceId}/{channel}/{user}/section/by-code", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Section>> getSectionsByGeologicalClassCode(@RequestParam(name = "code") String code) {
-        List<Section> sections = sectionService.getSectionsByGeologicalClassCode(code);
+    public ResponseEntity<List<Section>> getSectionsByGeologicalClassCode(@RequestParam(name = "code") String code, @PathVariable String traceId, @PathVariable String channel, @PathVariable String user) {
 
-        if (!sections.isEmpty()) {
-            return new ResponseEntity<>(sections, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        try {
+            MDC.put("transaction.id", traceId);
+            logger.info("Request to Get a Section by the class ID from channel {} ||  user {}  ", channel, user);
+            List<Section> sections = sectionService.getSectionsByGeologicalClassCode(code);
+
+            if (!sections.isEmpty()) {
+                return new ResponseEntity<>(sections, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } finally {
+            MDC.remove("transaction.id");
         }
     }
 
