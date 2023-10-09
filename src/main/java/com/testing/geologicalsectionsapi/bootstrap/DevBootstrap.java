@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
-@Component
+//@Component
 public class DevBootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
     private final SectionRepository sectionRepository;

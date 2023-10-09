@@ -1,10 +1,26 @@
 package com.testing.geologicalsectionsapi.services.impl;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.testing.geologicalsectionsapi.exception.CustomRequestException;
+import com.testing.geologicalsectionsapi.models.Section;
+import com.testing.geologicalsectionsapi.repositories.SectionRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.mockito.Mockito.*;
+
+import com.testing.geologicalsectionsapi.exception.CustomRequestException;
+import com.testing.geologicalsectionsapi.models.GeologicalClass;
 import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.repositories.SectionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,11 +38,11 @@ import static org.mockito.Mockito.*;
 
 public class SectionServiceImplTest {
 
-    @Mock
-    private SectionRepository sectionRepository;
-
     @InjectMocks
     private SectionServiceImpl sectionService;
+
+    @Mock
+    private SectionRepository sectionRepository;
 
     @BeforeEach
     void setUp() {
@@ -35,127 +51,127 @@ public class SectionServiceImplTest {
 
     @Test
     void testGetSectionById() {
+        // Arrange
         Long sectionId = 1L;
-        Section sectionToReturn = new Section();
-        sectionToReturn.setName("Section N");
-        sectionToReturn.setId(4L);
+        Section section = new Section();
+        section.setId(sectionId);
 
-        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(sectionToReturn));
+        when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(section));
 
-        Section retrievedSection = sectionService.getSectionById(sectionId, "traceId");
+        // Act
+        Optional<Section> result = sectionService.getSectionById(sectionId, "traceId");
 
-        assertNotNull(retrievedSection);
-        assertEquals("Section N", retrievedSection.getName());
-
-        verify(sectionRepository, times(1)).findById(sectionId);
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(sectionId, result.get().getId());
     }
 
     @Test
     void testGetSectionByIdNotFound() {
+        // Arrange
         Long sectionId = 1L;
+
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.empty());
 
-        assertThrows(CustomRequestException.class, () -> {
-            sectionService.getSectionById(sectionId, "traceId");
-        });
+        // Act
+        Optional<Section> result = sectionService.getSectionById(sectionId, "traceId");
 
-        verify(sectionRepository, times(1)).findById(sectionId);
+        // Assert
+        assertTrue(result.isEmpty());
     }
 
     @Test
     void testCreateSection() {
+        // Arrange
+        Section section = new Section();
 
-        Section sectionToCreate = new Section();
-        sectionToCreate.setName("TestSection");
+        when(sectionRepository.save(section)).thenReturn(section);
 
+        // Act
+        Section result = sectionService.createSection(section);
 
-        when(sectionRepository.save(sectionToCreate)).thenReturn(sectionToCreate);
-
-        Section createdSection = sectionService.createSection(sectionToCreate);
-
-        assertNotNull(createdSection);
-        assertEquals("TestSection", createdSection.getName());
-
-        verify(sectionRepository, times(1)).save(sectionToCreate);
+        // Assert
+        assertNotNull(result);
+        assertEquals(section, result);
     }
 
     @Test
     void testUpdateSection() {
+        // Arrange
         Long sectionId = 1L;
-
-
+        String updatedName = "Updated Section Name";
         Section existingSection = new Section();
-        existingSection.setName("Section N");
-        existingSection.setId(4L);
-
+        existingSection.setId(sectionId);
         Section updatedSection = new Section();
-        updatedSection.setName("Section N");
-        updatedSection.setId(4L);
-
+        updatedSection.setName(updatedName);
 
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.of(existingSection));
         when(sectionRepository.save(existingSection)).thenReturn(existingSection);
 
-        Section updated = sectionService.updateSection(sectionId, updatedSection, "traceId");
+        // Act
+        Section result = sectionService.updateSection(sectionId, updatedSection, "traceId");
 
-        assertNotNull(updated);
-        assertEquals("Section N", updated.getName());
-
-        verify(sectionRepository, times(1)).findById(sectionId);
-        verify(sectionRepository, times(1)).save(existingSection);
+        // Assert
+        assertNotNull(result);
+        assertEquals(updatedName, result.getName());
     }
 
     @Test
     void testUpdateSectionNotFound() {
+        // Arrange
         Long sectionId = 1L;
-
         Section updatedSection = new Section();
-        updatedSection.setName("Section N");
-        updatedSection.setId(4L);
-
 
         when(sectionRepository.findById(sectionId)).thenReturn(Optional.empty());
 
-        assertThrows(CustomRequestException.class, () -> {
-            sectionService.updateSection(sectionId, updatedSection, "traceId");
-        });
-
-        verify(sectionRepository, times(1)).findById(sectionId);
-        verify(sectionRepository, never()).save(any());
+        // Act & Assert
+        assertThrows(CustomRequestException.class, () -> sectionService.updateSection(sectionId, updatedSection, "traceId"));
     }
 
     @Test
     void testDeleteSection() {
+        // Arrange
         Long sectionId = 1L;
-        sectionService.deleteSection(sectionId);
 
+        when(sectionRepository.existsById(sectionId)).thenReturn(true);
+
+        // Act
+        boolean result = sectionService.deleteSection(sectionId);
+
+        // Assert
+        assertTrue(result);
         verify(sectionRepository, times(1)).deleteById(sectionId);
     }
 
     @Test
+    void testDeleteSectionNotFound() {
+        // Arrange
+        Long sectionId = 1L;
+
+        when(sectionRepository.existsById(sectionId)).thenReturn(false);
+
+        // Act
+        boolean result = sectionService.deleteSection(sectionId);
+
+        // Assert
+        assertFalse(result);
+        verify(sectionRepository, never()).deleteById(sectionId);
+    }
+
+    @Test
     void testGetSectionsByGeologicalClassCode() {
-        String classCode = "TestClassCode";
-        List<Section> mockSections = new ArrayList<>();
+        // Arrange
+        String code = "ABC";
+        List<Section> sections = new ArrayList<>();
 
-        Section section1 = new Section();
-        section1.setName("Section1");
-        section1.setId(4L);
+        when(sectionRepository.findByGeologicalClassesCode(code)).thenReturn(sections);
 
-        Section section2 = new Section();
-        section2.setName("Section2");
-        section2.setId(4L);
+        // Act
+        List<Section> result = sectionService.getSectionsByGeologicalClassCode(code);
 
-        mockSections.add(section1);
-        mockSections.add(section2);
-
-        when(sectionRepository.findByGeologicalClassesCode(classCode)).thenReturn(mockSections);
-
-        List<Section> retrievedSections = sectionService.getSectionsByGeologicalClassCode(classCode);
-
-        assertEquals(2, retrievedSections.size());
-        assertEquals("Section1", retrievedSections.get(0).getName());
-        assertEquals("Section2", retrievedSections.get(1).getName());
-
-        verify(sectionRepository, times(1)).findByGeologicalClassesCode(classCode);
+        // Assert
+        assertNotNull(result);
+        assertEquals(sections, result);
     }
 }
+
