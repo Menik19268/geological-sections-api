@@ -15,9 +15,12 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/geological-classes")
+@RequestMapping(GeologicalClassController.BASE_URL)
 @Api(produces = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
 public class GeologicalClassController {
+
+    static final String BASE_URL = "/api";
+
 
     private final GeologicalClassServiceImpl geologicalClassService;
     final Logger logger = LoggerFactory.getLogger("Application");

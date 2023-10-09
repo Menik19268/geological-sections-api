@@ -1,5 +1,6 @@
 package com.testing.geologicalsectionsapi.services.impl;
 
+import com.testing.geologicalsectionsapi.exception.CustomRequestException;
 import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.repositories.SectionRepository;
 import com.testing.geologicalsectionsapi.services.SectionService;
@@ -18,17 +19,10 @@ public class SectionServiceImpl implements SectionService {
     }
 
 
-//    public Section createSection(Section section) {
-//        // Implement logic to create a section
-//        // You can use sectionRepository.save(section) for Spring Data JPA
-//
-//        // Example:
-//        return sectionRepository.save(section);
-//    }
 
     public Section getSectionById(Long id, String traceId) {
         return sectionRepository.findById(id)
-                .orElseThrow(() -> new ValidationException(traceId));
+                .orElseThrow(() -> new CustomRequestException(traceId));
 
     }
 
@@ -42,7 +36,7 @@ public class SectionServiceImpl implements SectionService {
     public Section updateSection(Long id, Section updatedSection, String traceId) {
 
         Section existingSection = sectionRepository.findById(id)
-                .orElseThrow(() -> new ValidationException(traceId));
+                .orElseThrow(() -> new CustomRequestException(traceId));
 
         existingSection.setName(updatedSection.getName());
 
