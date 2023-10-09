@@ -19,6 +19,7 @@ public class SectionServiceImpl implements SectionService {
     }
 
 
+
     public Section getSectionById(Long id, String traceId) {
         return sectionRepository.findById(id)
                 .orElseThrow(() -> new CustomRequestException(traceId));

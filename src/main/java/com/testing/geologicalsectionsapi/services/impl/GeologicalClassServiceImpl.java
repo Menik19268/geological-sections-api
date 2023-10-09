@@ -43,16 +43,26 @@ public class GeologicalClassServiceImpl implements GeologicalClassService {
     public GeologicalClass updateGeologicalClass(Long id, GeologicalClass updatedGeologicalClass) {
         Optional<GeologicalClass> existingClass = geologicalClassRepository.findById(id);
         if (existingClass.isPresent()) {
-            GeologicalClass updatedClass = existingClass.get();
-            updatedClass.setName(updatedGeologicalClass.getName());
-            updatedClass.setCode(updatedGeologicalClass.getCode());
+            GeologicalClass classToUpdate = existingClass.get();
 
-            return geologicalClassRepository.save(updatedClass);
+            if (updatedGeologicalClass.getCode() != null) {
+                classToUpdate.setCode(updatedGeologicalClass.getCode());
+            }
+
+            if (updatedGeologicalClass.getName() != null) {
+                classToUpdate.setName(updatedGeologicalClass.getName());
+            }
+
+            if (updatedGeologicalClass.getSection() != null) {
+                classToUpdate.setSection(updatedGeologicalClass.getSection());
+            }
+
+            return geologicalClassRepository.save(classToUpdate);
         } else {
-            // Handle the case where the class with the given ID is not found
             return null;
         }
     }
+
 
     public boolean deleteGeologicalClass(Long id) {
         // Check if the class exists before deleting
