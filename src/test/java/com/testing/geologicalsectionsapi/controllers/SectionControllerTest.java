@@ -1,32 +1,39 @@
 package com.testing.geologicalsectionsapi.controllers;
 
+import com.testing.geologicalsectionsapi.models.SectionResponse;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import com.testing.geologicalsectionsapi.models.Section;
 import com.testing.geologicalsectionsapi.services.SectionService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-class SectionControllerTest {
+import org.slf4j.Logger;
+
+import java.util.Collections;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class SectionControllerTest {
 
     @InjectMocks
-    private SectionController controller;
+    private SectionController sectionController;
 
     @Mock
     private SectionService sectionService;
+
+    @Mock
+    private Logger logger;
 
     @BeforeEach
     void setUp() {
@@ -35,73 +42,181 @@ class SectionControllerTest {
 
     @Test
     void testCreateSection() {
-        // Mock the service response
-        Section createdSection = new Section();
-        when(sectionService.createSection(any())).thenReturn(createdSection);
+        // Arrange
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
+        Section section = new Section();
+        section.setName("Test Section");
 
-        // Call the controller method
-        Section result = controller.createSection(new Section(), "traceId", "channel", "user");
+        when(sectionService.createSection(section)).thenReturn(section);
 
-        // Verify the service method was called and check the result
-        verify(sectionService).createSection(any());
-        assertEquals(createdSection, result);
+        // Act
+        ResponseEntity<SectionResponse> response = sectionController.createSection(section, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+
+        SectionResponse sectionResponse = response.getBody();
+        assertEquals(section.getId(), sectionResponse.getId());
     }
+
 
     @Test
     void testGetSectionById() {
-        // Mock the service response
+        // Arrange
+        Long sectionId = 1L;
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
         Section section = new Section();
-        when(sectionService.getSectionById(anyLong(), anyString())).thenReturn(section);
+        section.setId(sectionId);
 
-        // Call the controller method
-        Section result = controller.getSectionById(1L, "traceId", "channel", "user");
+        when(sectionService.getSectionById(sectionId, traceId)).thenReturn(Optional.of(section));
 
-        // Verify the service method was called and check the result
-        verify(sectionService).getSectionById(anyLong(), anyString());
-        assertEquals(section, result);
+        // Act
+        ResponseEntity<Section> response = sectionController.getSectionById(sectionId, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(section, response.getBody());
+    }
+
+    @Test
+    void testGetSectionByIdNotFound() {
+        // Arrange
+        Long sectionId = 1L;
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
+
+        when(sectionService.getSectionById(sectionId, traceId)).thenReturn(Optional.empty());
+
+        // Act
+        ResponseEntity<Section> response = sectionController.getSectionById(sectionId, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
     }
 
     @Test
     void testUpdateSection() {
-        // Mock the service response
-        Long id = 1L;
+        // Arrange
+        Long sectionId = 1L;
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
         Section updatedSection = new Section();
-        when(sectionService.updateSection(eq(id), any(), anyString())).thenReturn(updatedSection);
+        updatedSection.setId(sectionId);
+        updatedSection.setName("Updated Section");
 
-        // Call the controller method
-        Section result = controller.updateSection(id, new Section(), "traceId", "channel", "user");
+        when(sectionService.updateSection(sectionId, updatedSection, traceId)).thenReturn(updatedSection);
 
-        // Verify the service method was called and check the result
-        verify(sectionService).updateSection(eq(id), any(), anyString());
-        assertEquals(updatedSection, result);
+        // Act
+        ResponseEntity<Section> response = sectionController.updateSection(sectionId, updatedSection, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(updatedSection, response.getBody());
+    }
+
+    @Test
+    void testUpdateSectionNotFound() {
+        // Arrange
+        Long sectionId = 1L;
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
+        Section updatedSection = new Section();
+        updatedSection.setId(sectionId);
+        updatedSection.setName("Updated Section");
+
+        when(sectionService.updateSection(sectionId, updatedSection, traceId)).thenReturn(null);
+
+        // Act
+        ResponseEntity<Section> response = sectionController.updateSection(sectionId, updatedSection, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
     }
 
     @Test
     void testDeleteSection() {
-        // Call the controller method
-        controller.deleteSection(1L, "traceId", "channel", "user");
+        // Arrange
+        Long sectionId = 1L;
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
 
-        // Verify the service method was called
-        verify(sectionService).deleteSection(1L);
+        when(sectionService.deleteSection(sectionId)).thenReturn(true);
+
+        // Act
+        ResponseEntity<Void> response = sectionController.deleteSection(sectionId, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void testDeleteSectionNotFound() {
+        // Arrange
+        Long sectionId = 1L;
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
+
+        when(sectionService.deleteSection(sectionId)).thenReturn(false);
+
+        // Act
+        ResponseEntity<Void> response = sectionController.deleteSection(sectionId, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void testGetSectionsByGeologicalClassCode() {
-        // Mock the service response
-        List<Section> sections = new ArrayList<>();
+        // Arrange
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
+        String code = "ABC";
         Section section = new Section();
-        section.setName("Section N");
-        section.setId(4L);
-        sections.add(section);
+        section.setId(1L);
+        List<Section> sections = Collections.singletonList(section);
 
-        when(sectionService.getSectionsByGeologicalClassCode(anyString())).thenReturn(sections);
+        when(sectionService.getSectionsByGeologicalClassCode(code)).thenReturn(sections);
 
-        // Call the controller method
-        ResponseEntity<List<Section>> response = controller.getSectionsByGeologicalClassCode("GCNM", "traceId", "channel", "user");
+        // Act
+        ResponseEntity<List<Section>> response = sectionController.getSectionsByGeologicalClassCode(code, traceId, channel, user);
 
-        // Verify the service method was called and check the response
-        verify(sectionService).getSectionsByGeologicalClassCode("GCNM");
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
         assertEquals(sections, response.getBody());
     }
+
+    @Test
+    void testGetSectionsByGeologicalClassCodeNotFound() {
+        // Arrange
+        String traceId = "123";
+        String channel = "channel";
+        String user = "user";
+        String code = "ABC";
+
+        when(sectionService.getSectionsByGeologicalClassCode(code)).thenReturn(Collections.emptyList());
+
+        // Act
+        ResponseEntity<List<Section>> response = sectionController.getSectionsByGeologicalClassCode(code, traceId, channel, user);
+
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+    }
 }
+

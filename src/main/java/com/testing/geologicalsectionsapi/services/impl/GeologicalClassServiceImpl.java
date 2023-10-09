@@ -22,6 +22,7 @@ public class GeologicalClassServiceImpl implements GeologicalClassService {
     public GeologicalClass createGeologicalClass(GeologicalClass geologicalClass) {
         // Add any additional logic here if needed
         return geologicalClassRepository.save(geologicalClass);
+
     }
 
     public Optional<GeologicalClass> getGeologicalClassById(Long id) {
