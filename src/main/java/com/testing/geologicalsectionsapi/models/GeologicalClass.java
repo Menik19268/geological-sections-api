@@ -1,11 +1,7 @@
 package com.testing.geologicalsectionsapi.models;
 
-<<<<<<< HEAD
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-=======
-import jakarta.persistence.*;
->>>>>>> feature/api-logging-config
 import lombok.Data;
 
 import javax.persistence.*;

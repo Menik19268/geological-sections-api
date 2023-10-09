@@ -10,8 +10,8 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 
-@Configuration
-@Data
+//@Configuration
+//@Data
 public class JwtConfig {
     @Value("${jwt.secret}")
     private String jwtSecret;

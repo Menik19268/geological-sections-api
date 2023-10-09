@@ -7,10 +7,11 @@ import com.testing.geologicalsectionsapi.repositories.GeologicalClassRepository;
 import com.testing.geologicalsectionsapi.repositories.SectionRepository;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
-//@Component
+@Component
 public class DevBootstrap implements ApplicationListener<ContextRefreshedEvent> {
 
     private final SectionRepository sectionRepository;
