@@ -8,7 +8,10 @@ import com.testing.geologicalsectionsapi.repositories.JobStatusRepository;
 import com.testing.geologicalsectionsapi.services.DataImportService;
 import com.testing.geologicalsectionsapi.services.ImportService;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +25,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Service
-public class ImportServiceImpl extends CommonService implements ImportService  {
+public class ImportServiceImpl extends CommonService implements ImportService {
 
     final Logger logger = LoggerFactory.getLogger("Application");
 
@@ -40,7 +43,12 @@ public class ImportServiceImpl extends CommonService implements ImportService  {
     @Override
     public CompletableFuture<Long> importDataAsync(MultipartFile file) {
         try {
+            logger.info("Starting importDataAsync...");
+
+            long startTime = System.currentTimeMillis();
+
             // Save the job status as "IN PROGRESS"
+
             JobStatus jobStatus = new JobStatus(JobType.IMPORT, JobStatusEnum.IN_PROGRESS);
             jobStatus = jobStatusRepository.save(jobStatus);
             Long jobId = jobStatus.getId();
@@ -51,78 +59,93 @@ public class ImportServiceImpl extends CommonService implements ImportService  {
             // Use DataImportService to map and save data
             dataImportService.mapAndSaveData(importedData);
 
+            long endTime = System.currentTimeMillis();
+
             // Update the job status as "DONE" and save the count of saved records
             jobStatus.setStatus(JobStatusEnum.DONE);
             jobStatus.setResult(importedData.size() + " records imported successfully.");
             jobStatusRepository.save(jobStatus);
 
+            logger.info("Import job ID: {} completed successfully.", jobId);
+            long elapsedTime = endTime - startTime;
+            logger.info("Import job ID: {} took {} milliseconds to complete.", jobId, elapsedTime);
+
+
             return CompletableFuture.completedFuture(jobId);
         } catch (DataIntegrityViolationException e) {
-            // If there's a data integrity violation, update the job status as "ERROR"
             JobStatus jobStatus = new JobStatus(JobType.IMPORT, JobStatusEnum.ERROR);
             jobStatus.setResult("Data integrity violation: " + e.getMessage());
             jobStatusRepository.save(jobStatus);
+            logger.error("Data integrity violation during import: " + e.getMessage(), e);
             return CompletableFuture.completedFuture(-1L);
         } catch (Exception e) {
-            // Handle other exceptions here, e.g., log the error and update job status as "ERROR"
             JobStatus jobStatus = new JobStatus(JobType.IMPORT, JobStatusEnum.ERROR);
             jobStatus.setResult("Import failed: " + e.getMessage());
             jobStatusRepository.save(jobStatus);
-            // Additional logging
             logger.error("An error occurred during import: " + e.getMessage(), e);
             return CompletableFuture.completedFuture(-1L);
         }
     }
 
 
-    private List<XlsImportDto> parseImportedData(MultipartFile file) throws IOException {
+    private List<XlsImportDto> parseImportedData(MultipartFile file) {
         List<XlsImportDto> importedData = new ArrayList<>();
 
         try (Workbook workbook = getWorkbook(file)) {
-            Sheet sheet = workbook.getSheetAt(0); // Assuming the data is in the first sheet
+            Sheet sheet = workbook.getSheetAt(0);
+            List<String> columnHeaders = readColumnHeaders(sheet);
 
             Iterator<Row> rowIterator = sheet.iterator();
             boolean isHeaderRow = true;
-            List<String> columnHeaders = new ArrayList<>();
 
             while (rowIterator.hasNext()) {
                 Row row = rowIterator.next();
 
                 if (isHeaderRow) {
-                    // Collect column headers from the header row
-                    for (int i = 0; i < row.getLastCellNum(); i++) {
-                        Cell cell = row.getCell(i);
-                        columnHeaders.add(cell.getStringCellValue());
-                    }
                     isHeaderRow = false;
-                } else {
-                    // Process data rows
-                    XlsImportDto importDto = new XlsImportDto();
-                    Map<String, String> classData = new HashMap<>();
-
-                    for (int i = 0; i < row.getLastCellNum(); i++) {
-                        Cell cell = row.getCell(i);
-                        String header = columnHeaders.get(i);
-                        String cellValue = cell != null ? cell.getStringCellValue() : null;
-
-                        if (cellValue != null && !header.equals("Section name")) {
-                            // Use column headers other than "Section name" to populate class data
-                            classData.put(header, cellValue);
-                        } else if (header.equals("Section name")) {
-                            importDto.setSectionName(cellValue);
-                        }
-                    }
-
-                    importDto.setClassData(classData);
-                    importedData.add(importDto);
+                    continue;
                 }
+
+                XlsImportDto importDto = createImportDto(row, columnHeaders);
+                importedData.add(importDto);
             }
         } catch (Exception e) {
-            // Handle any exceptions that occur when opening the workbook
-            logger.error("Error while opening the workbook: " + e.getMessage());
+            logger.error("Error while parsing imported data: {}", e.getMessage());
         }
 
         return importedData;
+    }
+
+    private List<String> readColumnHeaders(Sheet sheet) {
+        Row headerRow = sheet.getRow(0);
+        List<String> columnHeaders = new ArrayList<>();
+
+        for (int i = 0; i < headerRow.getLastCellNum(); i++) {
+            Cell cell = headerRow.getCell(i);
+            columnHeaders.add(cell.getStringCellValue());
+        }
+
+        return columnHeaders;
+    }
+
+    private XlsImportDto createImportDto(Row row, List<String> columnHeaders) {
+        XlsImportDto importDto = new XlsImportDto();
+        Map<String, String> classData = new HashMap<>();
+
+        for (int i = 0; i < row.getLastCellNum(); i++) {
+            Cell cell = row.getCell(i);
+            String header = columnHeaders.get(i);
+            String cellValue = cell != null ? cell.getStringCellValue() : null;
+
+            if (cellValue != null && !header.equals("Section name")) {
+                classData.put(header, cellValue);
+            } else if (header.equals("Section name")) {
+                importDto.setSectionName(cellValue);
+            }
+        }
+
+        importDto.setClassData(classData);
+        return importDto;
     }
 
 

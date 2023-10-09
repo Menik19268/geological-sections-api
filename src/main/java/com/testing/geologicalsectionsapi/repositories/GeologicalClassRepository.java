@@ -1,7 +1,6 @@
 package com.testing.geologicalsectionsapi.repositories;
 
 import com.testing.geologicalsectionsapi.models.GeologicalClass;
-import com.testing.geologicalsectionsapi.models.Section;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
